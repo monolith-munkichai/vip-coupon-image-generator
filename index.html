@@ -1,0 +1,112 @@
+<label>
+  배경이미지 업로드:
+  <input type="file" id="uploadImage" accept="image/*" />
+</label>
+<br><br>
+
+<label>
+  쿠폰번호 업로드:
+  <input type="file" id="uploadJson" accept="application/json" />
+</label>
+<br><br>
+
+<button id="generateBtn">쿠폰 ZIP 생성</button>
+<br><br>
+
+<canvas id="canvas" style="border:1px solid #ccc; display:none;"></canvas>
+
+<!-- JSZip -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- Spoqa Han Sans Neo -->
+<link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let img = new Image();
+let jsonArray = [];
+
+// 배경이미지 업로드
+document.getElementById("uploadImage").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => { img.src = event.target.result; };
+  reader.readAsDataURL(file);
+});
+
+// 쿠폰번호 업로드(JSON)
+document.getElementById("uploadJson").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    try {
+      jsonArray = JSON.parse(event.target.result);
+      if (!Array.isArray(jsonArray)) {
+        alert("JSON 파일이 배열 형식이어야 합니다.");
+        jsonArray = [];
+      }
+    } catch (err) {
+      alert("잘못된 JSON 형식입니다.");
+    }
+  };
+  reader.readAsText(file);
+});
+
+// ZIP 생성
+document.getElementById("generateBtn").addEventListener("click", async () => {
+  if (!img.src) {
+    alert("먼저 배경이미지를 업로드하세요.");
+    return;
+  }
+  if (jsonArray.length === 0) {
+    alert("쿠폰번호 JSON 배열이 비어 있습니다.");
+    return;
+  }
+
+  // 폰트 로드 보장
+  await document.fonts.load("28px 'Spoqa Han Sans Neo'");
+
+  // 이미지 로드 보장
+  await new Promise(resolve => {
+    if (img.complete) resolve();
+    else img.onload = resolve;
+  });
+
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  const zip = new JSZip();
+
+  jsonArray.forEach(text => {
+    ctx.drawImage(img, 0, 0);
+
+    // 텍스트 스타일
+    ctx.font = "light 26px 'Spoqa Han Sans Neo'";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    // === 위치 조정 (예시: 하단 흰 박스 오른쪽 끝) ===
+    const x = canvas.width - 70;   // 오른쪽에서 50px 안쪽
+    const y = canvas.height - 60;  // 아래쪽에서 45px 위
+    ctx.fillText('965VBVY32', x, y);
+
+    // JPEG 변환
+    const dataURL = canvas.toDataURL("image/jpeg", 0.9);
+    const binary = atob(dataURL.split(",")[1]);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+
+    const safeName = text.replace(/[^a-zA-Z0-9가-힣-_ ]/g, "_");
+    zip.file(`${safeName}.jpg`, array);
+  });
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "쿠폰이미지.zip";
+  a.click();
+});
+</script>
