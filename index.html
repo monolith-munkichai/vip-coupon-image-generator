@@ -10,15 +10,20 @@
 </label>
 <br><br>
 
-<button id="generateBtn">쿠폰 ZIP 생성</button>
+<button id="generateBtn">쿠폰 생성</button>
 <br><br>
 
 <canvas id="canvas" style="border:1px solid #ccc; display:none;"></canvas>
 
 <!-- JSZip -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<!-- Spoqa Han Sans Neo -->
-<link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
+<style>
+    @font-face {
+        font-family: 'Gotham';
+        font-weight: 500;
+        src: url('font/Gotham-Book.ttf') format('truetype');
+    }
+</style>
 
 <script>
 const canvas = document.getElementById("canvas");
@@ -65,8 +70,11 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
     return;
   }
 
+  //적용할 웹폰트
+  const webFont = "500 20px 'Gotham'"
+
   // 폰트 로드 보장
-  await document.fonts.load("28px 'Spoqa Han Sans Neo'");
+  await document.fonts.load(webFont);
 
   // 이미지 로드 보장
   await new Promise(resolve => {
@@ -83,15 +91,16 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
     ctx.drawImage(img, 0, 0);
 
     // 텍스트 스타일
-    ctx.font = "light 26px 'Spoqa Han Sans Neo'";
+    ctx.font = webFont;
     ctx.fillStyle = "black";
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
     // === 위치 조정 (예시: 하단 흰 박스 오른쪽 끝) ===
-    const x = canvas.width - 70;   // 오른쪽에서 50px 안쪽
-    const y = canvas.height - 60;  // 아래쪽에서 45px 위
-    ctx.fillText('965VBVY32', x, y);
+    const x = canvas.width - 63;
+    const y = canvas.height - 65;
+    ctx.fillText(text, x, y);
+    // ctx.fillText('965VBVY32', x, y);
 
     // JPEG 변환
     const dataURL = canvas.toDataURL("image/jpeg", 0.9);
@@ -106,7 +115,7 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
   const blob = await zip.generateAsync({ type: "blob" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "쿠폰이미지.zip";
+  a.download = `VIP쿠폰_${Date.now()}.zip`;
   a.click();
 });
 </script>
