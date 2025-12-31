@@ -1,0 +1,1 @@
+insert into msg_queue(msg_type,dstaddr,callback,stat,text,subject,request_time,filecnt,fileloc1,fileloc2,fileloc3,fileloc4,fileloc5) values('3', '01048479502','18339810','0','','',now(),1,'https://image.981park.com/coupon/20261v/036KWNX0V.jpg',null,null,null,null);
